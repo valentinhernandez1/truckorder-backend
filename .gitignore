@@ -1,0 +1,22 @@
+## .NET
+bin/
+obj/
+*.user
+*.suo
+*.dll
+*.pdb
+
+## Visual Studio / Rider
+.vs/
+.idea/
+.vscode/
+
+## EF Core
+*.db
+*.db-journal
+*.sqlite
+*.sqlite3
+
+## OS
+.DS_Store
+Thumbs.db
