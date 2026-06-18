@@ -1,0 +1,151 @@
+  ### TruckOrder API - Ejemplos de prueba
+  ### Para usar con la extensión "REST Client" de VS Code o el panel HTTP de Visual Studio / Rider.
+  ### El server queda en http://localhost:5000 según launchSettings.json
+
+  @host = http://localhost:5000
+
+  ### ============================================================
+  ### Salud / docs
+  ### ============================================================
+
+  ### Info de la API
+  GET {{host}}/
+
+  ### Documentación interactiva en el browser:
+  # http://localhost:5000/swagger
+
+  ### ============================================================
+  ### Menú (PUC-001: consulta)
+  ### ============================================================
+
+  ### Listar productos del truck 1 (pantalla del cajero)
+  GET {{host}}/api/trucks/1/productos
+
+  ### Menú público por QR (cliente escaneando)
+  GET {{host}}/api/menu-qr/TR-001
+
+  ### ============================================================
+  ### PUC-001 - Armar y cobrar pedido
+  ### ============================================================
+
+  ### 1) Crear un pedido nuevo en el truck 1
+  # @name crear
+  POST {{host}}/api/pedidos
+  Content-Type: application/json
+
+  {
+    "truckId": 1
+  }
+
+  ### Capturamos el id del pedido recien creado para reutilizar abajo
+  @pedidoId = {{crear.response.body.id}}
+
+  ### 2) Agregar 2 Doble Cheese (id=1)
+  POST {{host}}/api/pedidos/{{pedidoId}}/items
+  Content-Type: application/json
+
+  {
+    "productoId": 1,
+    "cantidad": 2
+  }
+
+  ### 3) Agregar 1 papas chicas (id=6)
+  POST {{host}}/api/pedidos/{{pedidoId}}/items
+  Content-Type: application/json
+
+  {
+    "productoId": 6,
+    "cantidad": 1
+  }
+
+  ### 4) Agregar 2 bebidas cola (id=8)
+  POST {{host}}/api/pedidos/{{pedidoId}}/items
+  Content-Type: application/json
+
+  {
+    "productoId": 8,
+    "cantidad": 2
+  }
+
+  ### 5) Ver el pedido armado
+  GET {{host}}/api/pedidos/{{pedidoId}}
+
+  ### 6a) Cobrar en EFECTIVO con $1000 (calcula el vuelto)
+  POST {{host}}/api/pedidos/{{pedidoId}}/cobrar
+  Content-Type: application/json
+
+  {
+    "metodo": "Efectivo",
+    "montoRecibido": 1000
+  }
+
+  ### 6b) Alternativa: cobrar con TARJETA (POS externo)
+  POST {{host}}/api/pedidos/{{pedidoId}}/cobrar
+  Content-Type: application/json
+
+  {
+    "metodo": "Tarjeta"
+  }
+
+  ### 6c) Alternativa: cobrar con MERCADO PAGO (QR dinámico)
+  POST {{host}}/api/pedidos/{{pedidoId}}/cobrar
+  Content-Type: application/json
+
+  {
+    "metodo": "MercadoPago"
+  }
+
+  ### Error esperado: producto inexistente
+  POST {{host}}/api/pedidos/{{pedidoId}}/items
+  Content-Type: application/json
+
+  {
+    "productoId": 999,
+    "cantidad": 1
+  }
+
+  ### Error esperado: cobrar en efectivo con monto insuficiente
+  POST {{host}}/api/pedidos/{{pedidoId}}/cobrar
+  Content-Type: application/json
+
+  {
+    "metodo": "Efectivo",
+    "montoRecibido": 10
+  }
+
+  ### Cancelar un pedido (antes de cobrar)
+  POST {{host}}/api/pedidos/{{pedidoId}}/cancelar
+
+  ### ============================================================
+  ### PUC-003 - Cocina y pantalla pública
+  ### ============================================================
+
+  ### Listar pedidos para la cocina (Pagado o EnPreparacion)
+  GET {{host}}/api/trucks/1/cocina/pedidos
+
+  ### Cocinero arranca a preparar el pedido
+  PATCH {{host}}/api/pedidos/{{pedidoId}}/estado
+  Content-Type: application/json
+
+  {
+    "estado": "EnPreparacion"
+  }
+
+  ### Cocinero marca el pedido como LISTO
+  PATCH {{host}}/api/pedidos/{{pedidoId}}/estado
+  Content-Type: application/json
+
+  {
+    "estado": "Listo"
+  }
+
+  ### Pantalla pública: pedidos listos para retirar
+  GET {{host}}/api/trucks/1/publica/listos
+
+  ### Cajero marca como ENTREGADO
+  PATCH {{host}}/api/pedidos/{{pedidoId}}/estado
+  Content-Type: application/json
+
+  {
+    "estado": "Entregado"
+  }
